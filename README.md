@@ -1,1 +1,1 @@
-# DiscordChatbot
+DiscordChatbot is a Node.js application designed to enhance your Discord server with a customizable chatbot. This project seamlessly integrates with Discord via a dedicated bot token, handling both commands and events through a modular architecture that simplifies command and feature expansions. It's built for ease of use, scalability, and flexibility, allowing server admins to enhance their Discord communities with interactive and automated functionality.
