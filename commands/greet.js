@@ -2,30 +2,31 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const { exec } = require('child_process');
 
-// Load environment variables
 dotenv.config();
 
-const executeLangCommand = (language) => {
+const executeScript = ({language, scriptPath}) => {
     let command = '';
+    const scriptEnvVar = `${language.toUpperCase()}_SCRIPT`;
 
-    // Ensure that the environment variables for script paths are defined
-    if(!process.env.PYTHON_SCRIPT || !process.env.JS_SCRIPT || !process.env.RUBY_SCRIPT) {
-        console.error('Error: Script paths must be defined in the environment variables.');
+    if(!process.env[scriptEnvVar] && !scriptPath) {
+        console.error(`Error: Script path must be defined in the environment variables or passed as an argument.`);
         return;
     }
 
+    const scriptToExecute = scriptPath || process.env[scriptEnvVar];
+
     switch (language.toLowerCase()) {
         case 'python':
-            command = `python ${process.env.PYTHON_SCRIPT}`;
+            command = `python ${scriptToExecute}`;
             break;
         case 'javascript':
-            command = `node ${process.env.JS_SCRIPT}`;
+            command = `node ${scriptToExecute}`;
             break;
         case 'ruby':
-            command = `ruby ${process.env.RUBY_SCRIPT}`;
+            command = `ruby ${scriptToExecute}`;
             break;
         default:
-            console.error('Unsupported language.');
+            console.error('Unsupported language or script path not provided.');
             return;
     }
 
@@ -42,7 +43,5 @@ const executeLangCommand = (language) => {
     });
 };
 
-// Example usage
-// Make sure to replace these with actual scripts and corresponding languages for testing
-executeLangConfig('python');
-// Add more calls as needed
+executeScript({language: 'python'});
+executeScript({language: 'python', scriptPath: 'path/to/your/script.py'});
