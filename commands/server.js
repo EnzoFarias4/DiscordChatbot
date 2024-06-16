@@ -1,5 +1,7 @@
-const fs = require('fs');
+const fsPromises = require('fs').promises;
 const { exec } = require('child_process');
+const util = require('util');
+const execPromisified = util.promisify(exec);
 require('dotenv').config();
 
 class CommandModule {
@@ -7,37 +9,30 @@ class CommandModule {
         this.languagePath = process.env.LANGUAGE_PATH;
     }
 
-    executeCommand(cmd, callback) {
+    async executeCommand(cmd) {
         const fullCmd = `${this.languagePath} ${cmd}`;
 
-        exec(fullCmd, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`exec error: ${error}`);
-                return callback(error, null);
-            }
-            callback(null, stdout ? stdout : stderr);
-        });
+        try {
+            const { stdout, stderr } = await execPromisified(fullCmd);
+            return stdout ? stdout : stderr;
+        } catch (error) {
+            console.error(`exec error: ${error}`);
+            throw error; // Rethrow an error to be caught by the caller.
+        }
     }
 
-    saveAndExecute(scriptContent, scriptName, callback) {
+    async saveAndExecute(scriptContent, scriptName) {
         const filePath = `./${scriptName}`;
 
-        fs.writeFile(filePath, scriptContent, (err) => {
-            if (err) {
-                console.error(`Failed to write script file: ${err}`);
-                return callback(err, null);
-            }
-
-            this.executeCommand(filePath, (execErr, result) => {
-                if (execErr) {
-                    console.error(`Failed to execute script: ${execErr}`);
-                    callback(execErr, null);
-                } else {
-                    console.log(`Script executed successfully: ${result}`);
-                    callback(null, result);
-                }
-            });
-        });
+        try {
+            await fsPromises.writeFile(filePath, scriptContent);
+            const result = await this.executeCommand(filePath);
+            console.log(`Script executed successfully: ${result}`);
+            return result;
+        } catch (err) {
+            console.error(`An error occurred: ${err}`);
+            throw err; // Rethrow an error for further handling.
+        }
     }
 }
 
@@ -45,4 +40,11 @@ const myCommandModule = new CommandModule();
 const myScriptContent = 'console.log("Hello, World!");';
 const myScriptName = 'exampleScript.js';
 
-myCommandModule.saveAndExecute(myScript)
+// Using an async IIFE to use await at the top level
+(async () => {
+    try {
+        await myCommandModule.saveAndExecute(myScriptContent, myScriptName);
+    } catch (error) {
+        console.error(`Failed to save or execute script: ${error}`);
+    }
+})();
