@@ -27,11 +27,13 @@ class CommandModule {
         try {
             await fsPromises.writeFile(filePath, scriptContent);
             const result = await this.executeCommand(filePath);
+            await fsPromises.unlink(filePath); // Remove the script file after execution
             console.log(`Script executed successfully: ${result}`);
             return result;
         } catch (err) {
+            await fsPromises.unlink(filePath).catch(cleanupErr => console.error(`Cleanup failed: ${cleanupErr}`)); // Ensure cleanup in case of errors
             console.error(`An error occurred: ${err}`);
-            throw err; // Rethrow an error for further handling.
+            throw err; // Rethrow the error for further handling.
         }
     }
 }
@@ -40,7 +42,6 @@ const myCommandModule = new CommandModule();
 const myScriptContent = 'console.log("Hello, World!");';
 const myScriptName = 'exampleScript.js';
 
-// Using an async IIFE to use await at the top level
 (async () => {
     try {
         await myCommandModule.saveAndExecute(myScriptContent, myScriptName);
