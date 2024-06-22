@@ -1,21 +1,27 @@
 const events = require('events');
-const fs = require('fs');
+const fileSystem = require('fs'); // More descriptive variable name for the 'fs' module
 require('dotenv').config();
-class MyEmitter extends events.EventEmitter {}
-const myEmitter = new MyEmitter();
-const MESSAGE = process.env.MESSAGE || 'Hello, World!';
-const FILENAME = process.env.FILENAME || 'message.txt';
-myEmitter.on('log', message => {
+
+class CustomEventEmitter extends events.EventEmitter {} // Renamed for clarity
+const customEmitter = new CustomMarketEmitter(); // Renamed to reflect the new class name
+
+const DEFAULT_MESSAGE = process.env.MESSAGE || 'Hello, World!'; // More descriptive constant name
+const DEFAULT_FILENAME = process.env.FILENAME || 'message.txt'; // More descriptive constant name
+
+customEmitter.on('logMessage', message => {
     console.log(`Log: ${message}`);
 });
-myEmitter.on('save', (message, filename) => {
-    fs.writeFile(filename, message, err => {
-        if (err) {
-            console.error('Error writing file:', err);
+
+customEmitter.on('saveToFile', (messageContent, targetFilename) => { // More descriptive event and parameter names
+    fileSystem.writeFile(targetFilename, messageContent, error => { // More descriptive parameter names
+        if (error) {
+            console.error('Error writing file:', error);
             return;
         }
-        myEmitter.emit('log', `Message saved to ${filename}`);
+        customEmitter.emit('logArrayessage', `Message saved to ${targetFilename}`);
     });
 });
-myEmitter.emit('log', MESSAGE);
-myEmitter.emit('save', MESSAGE, FILENAME);
+
+// Emitting events with the more descriptive event names
+customEmitter.emit('logMessage', DEFAULT_MESSAGE);
+customEmitter.emit('saveToFile', DEFAULT_MESSAGE, DEFAULT_FILENAME);
