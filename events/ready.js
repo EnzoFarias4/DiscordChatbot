@@ -1,20 +1,27 @@
 const events = require('events');
-const fileSystem = require('fs'); // More descriptive variable name for the 'fs' module
+const fileSystem = require('fs');
 require('dotenv').config();
 
-class CustomEventEmitter extends events.EventEmitter {} // Renamed for clarity
-const customEmitter = new CustomEventEmitter(); // Corrected the name to match the class
+class CustomEventEmitter extends events.EventEmitter {}
+const customEmitter = new CustomEventEmitter();
 
-const DEFAULT_MESSAGE = process.env.MESSAGE || 'Hello, World!'; // More descriptive constant name
-const DEFAULT_FILENAME = process.env.FILENAME || 'message.txt'; // More descriptive constant name
+const DEFAULT_MESSAGE = process.env.MESSAGE || 'Hello, World!';
+const DEFAULT_FILENAME = process.env.FILENAME || 'message.txt';
 
-// Improved error handling within event listeners
+function logToConsole(message) {
+    if (typeof message === 'string' && message.length > 0) {
+        console.log(message);
+    } else {
+        console.error('Attempted to log an invalid message to the console.');
+    }
+}
+
 customEmitter.on('logMessage', message => {
     if (typeof message !== 'string' || message.length === 0) {
-        console.error('Invalid message received for logging.');
+        logToConsole('Invalid message received for logging.');
         return;
     }
-    console.log(`Log: ${message}`);
+    logToConsole(`Log: ${message}`);
 });
 
 customEmitter.on('saveToFile', (messageContent, targetFilename) => {
@@ -29,14 +36,12 @@ customEmitter.on('saveToFile', (messageContent, targetFilename) => {
 
     fileSystem.writeFile(targetFilename, messageContent, error => {
         if (error) {
-            // Emitting more descriptive and specific error messages
-            customEmitter.emit('logMessage', `Error writing to file ${targetFilename}: ${error.message}`);
+            logToConsole(`Error writing to file ${targetFilename}: ${error.message}`);
             return;
         }
-        customEmitter.emit('logMessage', `Message saved to ${targetFilename}`);
+        logToConsole(`Message saved to ${targetFilename}`);
     });
 });
 
-// Emitting events with the more descriptive event names
-customEmitter.emit('logMessage', DEFAULT_MESSAGE);
+logToConsole(DEFAULT_MESSAGE);
 customEmitter.emit('saveToFile', DEFAULT_MESSAGE, DEFAULT_FILENAME);
